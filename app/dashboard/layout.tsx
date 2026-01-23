@@ -13,6 +13,8 @@ export default async function DashboardLayout({
     if (!user) redirect("/login");
 
     // Check if user is part of any organization
+
+    // Check if user is part of any organization
     const { data: memberships } = await supabase
         .from("organization_members")
         .select("id")

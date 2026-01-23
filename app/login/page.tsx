@@ -1,33 +1,81 @@
 import { headers } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { Provider } from "@supabase/supabase-js";
 
-export default async function Login({
-    searchParams,
-}: {
-    searchParams: { message: string };
+export default async function Login(props: {
+    searchParams: Promise<{ message: string }>;
 }) {
+    const searchParams = await props.searchParams;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    console.log('[Login Page] Visiting. User ID:', user?.id || 'No user');
+
     if (user) {
+        console.log('[Login Page] User found, redirecting to /dashboard');
         return redirect("/dashboard");
     }
     const signIn = async (formData: FormData) => {
         "use server";
 
+        console.log('[Login Action] Attempting sign in');
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
         const supabase = await createClient();
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error, data } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
 
         if (error) {
+            console.error('[Login Action] Error:', error.message);
             return redirect(`/login?message=${encodeURIComponent(error.message)}`);
+        }
+
+        console.log('[Login Action] Success. User ID:', data.user?.id);
+
+        // Auto-create default organization if none exists (same as OAuth flow)
+        if (data.user) {
+            const { data: memberships } = await supabase
+                .from("organization_members")
+                .select("id")
+                .eq("user_id", data.user.id)
+                .limit(1);
+
+            if (!memberships || memberships.length === 0) {
+                const orgName = "My Project";
+                const slug = `org-${data.user.id.slice(0, 8)}-${Math.floor(Math.random() * 1000)}`;
+
+                const supabaseAdmin = createAdminClient();
+
+                // Ensure profile exists
+                await supabaseAdmin.from("profiles").upsert({
+                    id: data.user.id,
+                    email: data.user.email,
+                }, { onConflict: 'id' });
+
+                const { data: org, error: orgError } = await supabaseAdmin
+                    .from("organizations")
+                    .insert({
+                        name: orgName,
+                        slug: slug,
+                        owner_id: data.user.id
+                    })
+                    .select()
+                    .single();
+
+                if (org && !orgError) {
+                    await supabaseAdmin.from("organization_members").insert({
+                        organization_id: org.id,
+                        user_id: data.user.id,
+                        role: "admin"
+                    });
+                }
+            }
         }
 
         return redirect("/dashboard");

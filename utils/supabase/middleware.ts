@@ -19,23 +19,13 @@ export async function updateSession(request: NextRequest) {
                 },
                 setAll(cookiesToSet) {
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        request.cookies.set({
-                            name,
-                            value,
-                            ...options,
-                        })
+                        request.cookies.set(name, value)
                     )
                     response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
+                        request,
                     })
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        response.cookies.set({
-                            name,
-                            value,
-                            ...options,
-                        })
+                        response.cookies.set(name, value, options)
                     )
                 },
             },
@@ -45,6 +35,10 @@ export async function updateSession(request: NextRequest) {
     const {
         data: { user },
     } = await supabase.auth.getUser()
+
+    console.log('[Middleware] Path:', request.nextUrl.pathname);
+    console.log('[Middleware] Cookies:', request.cookies.getAll().map(c => c.name).join(', '));
+    console.log('[Middleware] User ID:', user?.id || 'No user');
 
     if (
         !user &&
