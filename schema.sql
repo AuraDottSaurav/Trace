@@ -114,3 +114,95 @@ create policy "Users can view own memberships" on public.organization_members fo
 -- Allow users to insert themselves as members (necessary for initial setup)
 create policy "Users can insert own membership" on public.organization_members for insert with check (auth.uid() = user_id);
 
+
+-- PROJECTS POLICIES
+create policy "Users can view organization projects" on public.projects for select using (
+  organization_id in (
+    select organization_id from public.organization_members
+    where user_id = auth.uid()
+  )
+);
+
+create policy "Organization members can create projects" on public.projects for insert with check (
+  organization_id in (
+    select organization_id from public.organization_members
+    where user_id = auth.uid()
+  )
+);
+
+create policy "Organization members can update projects" on public.projects for update using (
+  organization_id in (
+    select organization_id from public.organization_members
+    where user_id = auth.uid()
+  )
+);
+
+create policy "Organization members can delete projects" on public.projects for delete using (
+  organization_id in (
+    select organization_id from public.organization_members
+    where user_id = auth.uid()
+  )
+);
+
+-- TASKS POLICIES
+create policy "Users can view project tasks" on public.tasks for select using (
+  project_id in (
+    select id from public.projects
+    where organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    )
+  )
+);
+
+create policy "Users can create tasks in projects" on public.tasks for insert with check (
+  project_id in (
+    select id from public.projects
+    where organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    )
+  )
+);
+
+create policy "Users can update tasks" on public.tasks for update using (
+  project_id in (
+    select id from public.projects
+    where organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    )
+  )
+);
+
+create policy "Users can delete tasks" on public.tasks for delete using (
+  project_id in (
+    select id from public.projects
+    where organization_id in (
+      select organization_id from public.organization_members
+      where user_id = auth.uid()
+    )
+  )
+);
+
+-- INVITATIONS POLICIES
+create policy "Organization members can view invitations" on public.invitations for select using (
+  organization_id in (
+    select organization_id from public.organization_members
+    where user_id = auth.uid()
+  )
+);
+
+create policy "Organization members can create invitations" on public.invitations for insert with check (
+  organization_id in (
+    select organization_id from public.organization_members
+    where user_id = auth.uid()
+  )
+);
+
+create policy "Organization members can revoke invitations" on public.invitations for delete using (
+  organization_id in (
+    select organization_id from public.organization_members
+    where user_id = auth.uid()
+  )
+);

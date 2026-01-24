@@ -65,3 +65,56 @@ export async function createOrganization(formData: FormData) {
 
     return redirect("/dashboard");
 }
+
+export async function updateMemberRole(memberId: string, newRole: "admin" | "member") {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    // verify requester is admin
+    const { data: myMembership } = await supabase
+        .from("organization_members")
+        .select("role, organization_id")
+        .eq("user_id", user.id)
+        .single();
+
+    if (myMembership?.role !== 'admin') {
+        return { error: "Only admins can change roles" };
+    }
+
+    // Perform update
+    const { error } = await supabase
+        .from("organization_members")
+        .update({ role: newRole })
+        .eq("id", memberId)
+        .eq("organization_id", myMembership.organization_id); // Security check
+
+    if (error) return { error: "Failed to update role" };
+    return { success: true };
+}
+
+export async function removeMember(memberId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    // verify requester is admin
+    const { data: myMembership } = await supabase
+        .from("organization_members")
+        .select("role, organization_id")
+        .eq("user_id", user.id)
+        .single();
+
+    if (myMembership?.role !== 'admin') {
+        return { error: "Only admins can remove members" };
+    }
+
+    const { error } = await supabase
+        .from("organization_members")
+        .delete()
+        .eq("id", memberId)
+        .eq("organization_id", myMembership.organization_id); // Security check
+
+    if (error) return { error: "Failed to remove member" };
+    return { success: true };
+}
