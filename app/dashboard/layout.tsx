@@ -1,4 +1,4 @@
-import Sidebar from "@/components/Sidebar";
+import DashboardShell from "@/components/DashboardShell";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -15,22 +15,19 @@ export default async function DashboardLayout({
     // Check if user is part of any organization
 
     // Check if user is part of any organization
-    const { data: memberships } = await supabase
+    const { data: membership } = await supabase
         .from("organization_members")
-        .select("id")
+        .select("*, organizations(*)")
         .eq("user_id", user.id)
-        .limit(1);
+        .single();
 
-    if (!memberships || memberships.length === 0) {
+    if (!membership) {
         redirect("/onboarding");
     }
 
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-            <Sidebar />
-            <main className="flex-1 ml-0 md:ml-64 transition-all duration-300 p-8">
-                {children}
-            </main>
-        </div>
+        <DashboardShell user={user} organization={membership.organizations}>
+            {children}
+        </DashboardShell>
     );
 }

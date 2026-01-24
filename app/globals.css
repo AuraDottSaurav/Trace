@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -10,15 +11,17 @@
 }
 
 :root {
-  --background: #f8fafc; /* Slate-50 */
-  --foreground: #0f172a; /* Slate-900 */
+  --background: #f8fafc;
+  /* Slate-50 */
+  --foreground: #0f172a;
+  /* Slate-900 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617; /* Slate-950 */
-    --foreground: #f8fafc; /* Slate-50 */
-  }
+.dark {
+  --background: #020617;
+  /* Slate-950 */
+  --foreground: #f8fafc;
+  /* Slate-50 */
 }
 
 body {
@@ -35,11 +38,9 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass {
-    background: rgba(2, 6, 23, 0.6);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
+.dark .glass {
+  background: rgba(2, 6, 23, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Custom Scrollbar for "Peace of Mind" */
@@ -47,13 +48,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.5);
   border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.8);
 }

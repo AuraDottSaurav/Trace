@@ -1,15 +1,21 @@
-"use client";
-
+import { createClient } from "@/utils/supabase/server";
 import { Sparkles } from "lucide-react";
 
-export default function DashboardHome() {
+export default async function DashboardHome() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Fetch profile for name
+    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user?.id).single();
+    const name = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || "there";
+
     const hours = new Date().getHours();
     const greeting = hours < 12 ? "Good Morning" : hours < 18 ? "Good Afternoon" : "Good Evening";
 
     return (
-        <div className="max-w-4xl mx-auto pt-20 flex flex-col items-center text-center">
+        <div className="h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center -mt-8">
             <h1 className="text-4xl font-semibold text-slate-800 dark:text-slate-100 mb-2">
-                {greeting}, Saurav
+                {greeting}, {name}
             </h1>
             <p className="text-slate-500 text-lg mb-12">
                 What would you like to achieve today?
@@ -34,7 +40,7 @@ export default function DashboardHome() {
             </div>
 
             <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
-                {/* Quick Stats or Recent Activity Cards would go here */}
+                {/* Real stats will go here later */}
             </div>
         </div>
     );
