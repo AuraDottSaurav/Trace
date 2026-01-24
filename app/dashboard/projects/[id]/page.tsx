@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { getProjectDetails } from "@/actions/project";
 import { getProjectTasks, getProjectColumns } from "@/actions/tasks";
+import { getProjectSprints } from "@/actions/sprints";
 import KanbanBoard from "@/components/projects/kanban/KanbanBoard";
 import Link from "next/link";
 import { ArrowLeft, Settings, Users } from "lucide-react";
@@ -19,6 +20,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
     const tasks = await getProjectTasks(id);
     const columns = await getProjectColumns(id);
+    const sprints = await getProjectSprints(id);
     const members = await getOrganizationMembers(project.organization_id);
 
     return (
@@ -27,6 +29,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
             project={project}
             tasks={tasks || []}
             columns={columns || []}
+            sprints={sprints || []}
             members={members || []}
         />
     );

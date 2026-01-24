@@ -30,7 +30,7 @@ export default async function SettingsPage() {
 
             <div className="space-y-8">
                 {/* Profile Section */}
-                <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="bg-indigo-100 dark:bg-indigo-900/40 p-2 rounded-lg text-indigo-600 dark:text-indigo-400">
                             <User size={20} />
@@ -65,7 +65,7 @@ export default async function SettingsPage() {
                 </section>
 
                 {/* Organization Section */}
-                <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="bg-emerald-100 dark:bg-emerald-900/40 p-2 rounded-lg text-emerald-600 dark:text-emerald-400">
                             <Building size={20} />
@@ -100,7 +100,7 @@ export default async function SettingsPage() {
                 </section>
 
                 {/* Theme Section (Visual Only for now as toggle is in sidebar) */}
-                <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm opacity-50 pointer-events-none">
+                <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 opacity-50 pointer-events-none">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="bg-violet-100 dark:bg-violet-900/40 p-2 rounded-lg text-violet-600 dark:text-violet-400">
                             <Monitor size={20} />

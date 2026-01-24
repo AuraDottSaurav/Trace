@@ -11,6 +11,9 @@ export async function createTask(projectId: string, formData: FormData) {
     const priority = formData.get("priority") as string || "Medium";
     const assigneeId = formData.get("assigneeId") as string;
     const dueDate = formData.get("dueDate") as string;
+    const sprintId = formData.get("sprintId") as string;
+    const storyPoints = formData.get("storyPoints") ? parseInt(formData.get("storyPoints") as string) : null;
+    const taskType = formData.get("taskType") as string || "story";
 
     if (!title) return { error: "Task title is required" };
     if (!columnId) return { error: "Column ID is required" };
@@ -28,7 +31,10 @@ export async function createTask(projectId: string, formData: FormData) {
             priority,
             assignee_id: assigneeId || null,
             due_date: dueDate || null,
-            created_by: user.id
+            created_by: user.id,
+            sprint_id: sprintId || null,
+            story_points: storyPoints,
+            task_type: taskType
         })
         .select()
         .single();

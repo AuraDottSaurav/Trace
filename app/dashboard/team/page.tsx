@@ -93,7 +93,8 @@ export default function TeamPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 {/* Insights Card 1: Team Velocity */}
-                <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                {/* Insights Card 1: Team Velocity */}
+                <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg">
                             <Zap size={20} />
@@ -115,7 +116,8 @@ export default function TeamPage() {
                 </div>
 
                 {/* Insights Card 2: Workload Distribution */}
-                <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm lg:col-span-2">
+                {/* Insights Card 2: Workload Distribution */}
+                <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl lg:col-span-2">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg">
@@ -164,7 +166,7 @@ export default function TeamPage() {
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
