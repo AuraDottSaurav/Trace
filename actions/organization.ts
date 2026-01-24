@@ -66,6 +66,45 @@ export async function createOrganization(formData: FormData) {
     return redirect("/dashboard");
 }
 
+export async function getOrganizationMembers(organizationId: string) {
+    const supabase = await createClient();
+
+    // Check access first (simplified policy check usually handles this on db side but good to be explicit or if using admin)
+    // Here we use standard client so RLS applies.
+
+    const { data, error } = await supabase
+        .from("organization_members")
+        .select(`
+            id,
+            role,
+            user:user_id (
+                id,
+                full_name,
+                email,
+                avatar_url
+            )
+        `)
+        .eq("organization_id", organizationId);
+
+    if (error) {
+        console.error("Get Members Error:", error);
+        return [];
+    }
+
+    // Flatten structure for easier UI consumption
+    return data.map(m => {
+        const userData = Array.isArray(m.user) ? m.user[0] : m.user;
+        return {
+            id: m.id, // Member ID
+            role: m.role,
+            userId: userData?.id,
+            name: userData?.full_name || userData?.email || "Unknown",
+            email: userData?.email,
+            avatar: userData?.avatar_url
+        };
+    });
+}
+
 export async function updateMemberRole(memberId: string, newRole: "admin" | "member") {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
