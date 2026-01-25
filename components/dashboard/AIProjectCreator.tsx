@@ -49,7 +49,7 @@ export default function AIProjectCreator() {
             <div className="w-full max-w-5xl mx-auto flex flex-col h-full relative z-10">
                 {/* Hero Section */}
                 <div className="flex-none flex flex-col items-center justify-center min-h-[50vh] pt-16">
-                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-teal-400 to-indigo-500 bg-clip-text text-transparent mb-10 text-center tracking-tight">
+                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-teal-400 via-indigo-500 to-teal-400 bg-clip-text text-transparent mb-10 text-center tracking-tight animate-gradient-text">
                         What will you build today?
                     </h1>
 
@@ -97,7 +97,7 @@ export default function AIProjectCreator() {
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">{cat.category}</h3>
                                     <div className="space-y-3">
                                         {cat.items.map((item) => (
-                                            <div key={item.title} className="group p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all cursor-pointer flex items-start gap-4 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/20 hover:-translate-y-1 duration-300">
+                                            <div key={item.title} className="group p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer flex items-start gap-4 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/20 hover:-translate-y-1 duration-300">
                                                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex-shrink-0 shadow-inner flex items-center justify-center text-white/90`}>
                                                     <FolderKanban size={20} className="opacity-75" />
                                                 </div>

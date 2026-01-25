@@ -28,7 +28,16 @@ function classNames(...classes: (string | undefined | null | false)[]) {
 }
 
 interface SidebarProps {
-    user: { email?: string };
+    user: {
+        id?: string;
+        email?: string;
+        created_at?: string;
+        user_metadata?: {
+            full_name?: string;
+            name?: string;
+            [key: string]: any;
+        };
+    };
     organization: { name?: string } | null;
     collapsed: boolean;
     setCollapsed: (collapsed: boolean) => void;
@@ -37,11 +46,30 @@ interface SidebarProps {
 const Sidebar = ({ user, organization, collapsed, setCollapsed }: SidebarProps) => {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
     const pathname = usePathname();
+
+    // Helper to get display name
+    const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0];
+
+    // Format join date
+    const joinDate = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown';
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // Close profile when clicking outside (simple implementation)
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (showProfile && !target.closest('.user-profile-trigger') && !target.closest('.user-profile-popup')) {
+                setShowProfile(false);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [showProfile]);
 
     const toggleTheme = () => {
         setTheme(theme === "dark" ? "light" : "dark");
@@ -77,10 +105,10 @@ const Sidebar = ({ user, organization, collapsed, setCollapsed }: SidebarProps) 
             <div className={classNames("h-16 flex items-center px-4 border-b border-slate-200 dark:border-slate-800 w-full relative", collapsed ? "justify-center" : "justify-between")}>
                 <div className={classNames("flex items-center overflow-hidden", collapsed ? "gap-0" : "gap-3")}>
                     <div className="w-8 h-8 bg-indigo-600 rounded-lg flex-shrink-0 flex items-center justify-center text-white font-bold">
-                        {organization?.name?.[0] || "T"}
+                        T
                     </div>
-                    <span className={classNames("font-semibold text-lg text-slate-800 dark:text-slate-100 whitespace-nowrap transition-all duration-300", collapsed ? "w-0 opacity-0 px-0" : "w-auto opacity-100 pl-3")}>
-                        {organization?.name || "Trace"}
+                    <span className={classNames("font-bold text-xl whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent animate-gradient-text", collapsed ? "w-0 opacity-0 px-0" : "w-auto opacity-100 pl-3")}>
+                        Trace
                     </span>
                 </div>
                 <button
@@ -121,13 +149,65 @@ const Sidebar = ({ user, organization, collapsed, setCollapsed }: SidebarProps) 
             </nav>
 
             {/* Footer / Tenant Info */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 w-full mb-2">
-                <div className={classNames("bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 flex items-center overflow-hidden mb-4", collapsed ? "justify-center p-2 mx-auto w-10 h-10" : "gap-3")}>
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 w-full mb-2 relative">
+
+                {/* Profile Modal */}
+                {showProfile && (
+                    <div
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) setShowProfile(false);
+                        }}
+                    >
+                        {/* Modal Content */}
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 w-full max-w-sm relative animate-in zoom-in-95 duration-200">
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setShowProfile(false)}
+                                className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                            >
+                                <ChevronRight size={16} className="rotate-90" /> {/* Reusing Chevron as close X equivalent or just replace with X icon if imported, but ChevronRight is already imported. Actually, X (Lucide 'X') is better but not imported. Let's stick to simple click outside or add X if I import it. I'll just rely on click outside + maybe a simple Close text or icon if available. I see 'LogOut' is available. Let's just use click outside logic mainly, but maybe a clean header? I'll keep it simple as requested: "directly show the center aligned pop up with all the details". */}
+                            </button>
+
+                            <div className="flex flex-col items-center text-center mb-6">
+                                <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-3xl mb-4 shadow-inner">
+                                    {displayName?.[0]?.toUpperCase()}
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{displayName}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{user?.email}</p>
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 mt-3">
+                                    Free Plan
+                                </span>
+                            </div>
+
+                            <div className="space-y-4 py-4 border-t border-slate-100 dark:border-slate-800">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-slate-500">Member since</span>
+                                    <span className="font-medium text-slate-700 dark:text-slate-300">{joinDate}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-slate-500">User ID</span>
+                                    <span className="font-medium text-slate-700 dark:text-slate-300 font-mono text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded select-all" title={user?.id}>
+                                        {user?.id}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div
+                    onClick={() => setShowProfile(!showProfile)}
+                    className={classNames(
+                        "user-profile-trigger bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 flex items-center overflow-hidden mb-4 cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors",
+                        collapsed ? "justify-center p-2 mx-auto w-10 h-10" : "gap-3"
+                    )}
+                >
                     <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-medium flex-shrink-0 text-xs">
-                        {user?.email?.[0].toUpperCase()}
+                        {displayName?.[0]?.toUpperCase()}
                     </div>
                     <div className={classNames("flex-1 overflow-hidden transition-all duration-300", collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100 block")}>
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{user?.email}</p>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{displayName}</p>
                         <p className="text-xs text-slate-400 truncate">Free Plan</p>
                     </div>
                 </div>
