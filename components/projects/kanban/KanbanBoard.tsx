@@ -20,6 +20,8 @@ import TaskCard from "./TaskCard";
 import { updateTaskColumn } from "@/actions/tasks";
 import { createPortal } from "react-dom";
 import TaskDetailsModal from "../TaskDetailsModal";
+import { Search } from "lucide-react";
+import MemberFilter from "../MemberFilter";
 
 interface KanbanBoardProps {
     projectId: string;
@@ -113,6 +115,24 @@ export default function KanbanBoard({ projectId, initialColumns, initialTasks, m
         }
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeMemberFilter, setActiveMemberFilter] = useState<string | null>(null);
+
+    // Filter tasks for display
+    const filteredTasks = tasks.filter((t: any) => {
+        const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesMember = activeMemberFilter === null
+            ? true
+            : activeMemberFilter === "unassigned"
+                ? !t.assignee_id
+                : t.assignee_id === activeMemberFilter;
+        return matchesSearch && matchesMember;
+    });
+
+    const toggleMemberFilter = (memberId: string) => {
+        setActiveMemberFilter(current => current === memberId ? null : memberId);
+    };
+
     const onDragEnd = async (event: DragEndEvent) => {
         setActiveTask(null);
         const { active, over } = event;
@@ -154,7 +174,24 @@ export default function KanbanBoard({ projectId, initialColumns, initialTasks, m
     if (!isMounted) return null;
 
     return (
-        <>
+        <div className="flex flex-col h-full gap-4">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-4 flex-1">
+                    <div className="relative w-64">
+                        <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search board"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md pl-9 pr-4 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 text-slate-700 dark:text-slate-300 transition-shadow"
+                        />
+                    </div>
+                    <MemberFilter members={members} activeFilter={activeMemberFilter} onToggle={toggleMemberFilter} />
+                </div>
+            </div>
+
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}
@@ -164,11 +201,11 @@ export default function KanbanBoard({ projectId, initialColumns, initialTasks, m
             >
                 <div className="flex gap-4 overflow-x-auto pb-4 h-full items-start">
                     {columns.map((col) => (
-                        <div key={col.id} className="flex flex-col bg-slate-50/50 dark:bg-slate-900/30 min-w-[300px] w-[320px] rounded-2xl p-4 border border-slate-200/50 dark:border-slate-800/50 h-full max-h-[calc(100vh-12rem)]">
+                        <div key={col.id} className="flex flex-col bg-slate-50/50 dark:bg-slate-900/30 min-w-[300px] w-[320px] rounded-2xl p-4 border border-slate-200/50 dark:border-slate-800/50 h-full max-h-[calc(100vh-16rem)]">
                             {/* Inlining Column for click handler access if needed or just use KanbanColumn */}
                             <KanbanColumn
                                 column={col}
-                                tasks={tasks.filter((t: any) => t.column_id === col.id)}
+                                tasks={filteredTasks.filter((t: any) => t.column_id === col.id)}
                                 onTaskClick={setSelectedTask}
                                 onAddClick={() => onAddColumnTask?.(col.id)}
                             />
@@ -187,14 +224,6 @@ export default function KanbanBoard({ projectId, initialColumns, initialTasks, m
                 )}
             </DndContext>
 
-            {/* Select Task for Editing (Overlay or just standard non-drag click) */}
-            {/* Note: TaskCard needs to trigger setSelectedTask. 
-                 But TaskCard is inside KanbanColumn.
-                 We can't easily pass props through dnd-kit context without custom context.
-                 Alternative: Use global event bus or just Click handler on the Board with delegation?
-                 Or: Modifying KanbanColumn/TaskCard to accept onClick.
-                 Let's assume we modify TaskCard to accept onClick in next step or use a context.
-             */}
             <TaskDetailsModal
                 task={selectedTask}
                 isOpen={!!selectedTask}
@@ -202,11 +231,6 @@ export default function KanbanBoard({ projectId, initialColumns, initialTasks, m
                 columns={columns}
                 members={members}
             />
-
-            {/* QUICK FIX: We need to pass click handler. 
-                 Since I overwrote KanbanBoard, and I'm using KanbanColumn, I need to pass setSelectTask down.
-                 I will update KanbanColumn and TaskCard to accept onTaskClick.
-             */}
-        </>
+        </div>
     );
 }

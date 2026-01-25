@@ -54,27 +54,27 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, columns, m
                         setIsLoading(false);
                         onClose();
                     }}
-                    className="p-6 space-y-5 overflow-y-auto"
+                    className="p-6 space-y-6 overflow-y-auto"
                 >
                     <div className="grid grid-cols-2 gap-4">
                         {/* Task Type */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Issue Type</label>
                             <div className="relative">
-                                <select name="taskType" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
+                                <select name="taskType" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-4 pr-10 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
                                     <option value="story">Story</option>
                                     <option value="task">Task</option>
                                     <option value="bug">Bug</option>
                                     <option value="epic">Epic</option>
                                 </select>
-                                <ChevronDown className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={16} />
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                             </div>
                         </div>
                         {/* Sprint */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Sprint</label>
                             <div className="relative">
-                                <select name="sprintId" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
+                                <select name="sprintId" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-4 pr-10 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
                                     <option value="">Backlog</option>
                                     {sprints.map(s => (
                                         <option key={s.id} value={s.id}>
@@ -82,7 +82,7 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, columns, m
                                         </option>
                                     ))}
                                 </select>
-                                <ChevronDown className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={16} />
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                             </div>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, columns, m
 
                     {/* Status Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Status</label>
                         <div className="flex gap-2 flex-wrap">
                             {columns.map((col, idx) => (
                                 <label key={col.id} className="cursor-pointer">
@@ -130,26 +130,26 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, columns, m
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Priority</label>
                             <div className="relative">
-                                <select name="priority" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
+                                <select name="priority" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-4 pr-10 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer">
                                     <option value="Low">Low</option>
                                     <option value="Medium" defaultChecked>Medium</option>
                                     <option value="High">High</option>
                                 </select>
-                                <ChevronDown className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={16} />
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                             </div>
                         </div>
                         {/* Story Points */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Comparison</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Story Points</label>
                             <div className="relative">
                                 <input
                                     type="number"
                                     name="storyPoints"
-                                    placeholder="Points"
+                                    placeholder="0"
                                     min="0"
-                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none transition-all"
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-4 pr-10 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none transition-all"
                                 />
-                                <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-medium">SP</span>
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium">SP</span>
                             </div>
                         </div>
                         {/* Assignee */}
@@ -164,16 +164,16 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, columns, m
                                         </option>
                                     ))}
                                 </select>
-                                <User className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={16} />
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="pt-2 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800/50 mt-4">
+                    <div className="pt-6 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800/50 mt-6">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium transition-colors"
+                            className="px-4 py-2.5 font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 transition-all"
                         >
                             Cancel
                         </button>

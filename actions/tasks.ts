@@ -61,6 +61,19 @@ export async function updateTaskColumn(taskId: string, columnId: string) {
     return { success: true };
 }
 
+export async function updateTaskSprint(taskId: string, sprintId: string | null) {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+        .from("tasks")
+        .update({ sprint_id: sprintId })
+        .eq("id", taskId);
+
+    if (error) return { error: error.message };
+
+    return { success: true };
+}
+
 export async function updateTask(taskId: string, updates: any) {
     const supabase = await createClient();
 
