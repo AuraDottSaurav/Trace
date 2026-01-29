@@ -104,10 +104,28 @@ export default async function Login(props: {
         return redirect("/login?message=Check email to continue sign in process");
     };
 
+    const getRedirectUrl = async () => {
+        const headerOrigin = (await headers()).get("origin");
+        // Prefer environment variable if set (important for production)
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+        if (appUrl) return appUrl.replace(/\/$/, ""); // Remove trailing slash if present
+
+        // Fallback to Vercel URL
+        const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL;
+        if (vercelUrl) return `https://${vercelUrl}`;
+
+        // Fallback to origin header if usually valid
+        if (headerOrigin) return headerOrigin;
+
+        return "http://localhost:3000";
+    };
+
     const signInWithGoogle = async () => {
         "use server";
-        const origin = (await headers()).get("origin");
+        const origin = await getRedirectUrl();
         const supabase = await createClient();
+        console.log('[Login] Redirecting to:', `${origin}/auth/callback`); // Debug log
+
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -126,7 +144,7 @@ export default async function Login(props: {
 
     const signInWithApple = async () => {
         "use server";
-        const origin = (await headers()).get("origin");
+        const origin = await getRedirectUrl();
         const supabase = await createClient();
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'apple',
