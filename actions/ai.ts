@@ -8,17 +8,21 @@ if (!apiKey) {
     console.warn("GEMINI_API_KEY is not set in environment variables");
 }
 
-const genAI = new GoogleGenerativeAI(apiKey || "");
-
-const model = genAI.getGenerativeModel({
-    model: "gemini-flash-latest",
-});
+// Remove top-level init to prevent startup crashes
+// const genAI = new GoogleGenerativeAI(apiKey || "");
+// const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 export async function parseIntentWithGemini(input: string, context?: any) {
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         console.error("Gemini API key is missing");
-        return null;
+        return null; // Fail gracefully instead of crashing
     }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash", // Use the verified working model
+    });
 
     try {
         const prompt = `
