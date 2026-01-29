@@ -2,6 +2,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   try {
     const supabase = await createClient();
@@ -13,6 +15,10 @@ export default async function Home() {
       redirect("/login");
     }
   } catch (error: any) {
+    if (error.message === "NEXT_REDIRECT" || (error.digest && error.digest.includes("NEXT_REDIRECT"))) {
+      throw error;
+    }
+
     console.error("Home Page Error:", error);
 
     // Render a helpful error screen if it's a configuration issue
