@@ -26,7 +26,7 @@ export default async function Home() {
           {error.message || JSON.stringify(error)}
         </pre>
         <p className="mt-6 text-sm text-slate-500">
-          Please check your Vercel Project Settings > Environment Variables.
+          Please check your Vercel Project Settings &gt; Environment Variables.
         </p>
       </div>
     );
