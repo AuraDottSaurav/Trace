@@ -56,7 +56,7 @@ export default function ProjectView({ project, tasks, columns, sprints, members,
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-indigo-500/20">
-                            {project.key || project.name.slice(0, 2).toUpperCase()}
+                            {(project.key || project.name).slice(0, 2).toUpperCase()}
                         </div>
                         <div>
                             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-none">{project.name}</h1>

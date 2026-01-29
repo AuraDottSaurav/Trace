@@ -6,7 +6,69 @@ import { Textarea } from "@/components/ui/textarea";
 import ParticleBackground from "./ParticleBackground";
 import MouseTrail from "./MouseTrail";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { parseIntentWithGemini } from "@/actions/ai";
+import { createProject } from "@/actions/project";
+import { toast } from "sonner"; // Assuming sonner is used based on package.json
+
 export default function AIProjectCreator() {
+    const [input, setInput] = useState("");
+    const [isProcessing, setIsProcessing] = useState(false);
+    const router = useRouter();
+
+    const handleIntent = async () => {
+        if (!input.trim()) return;
+        setIsProcessing(true);
+
+        try {
+            const aiData = await parseIntentWithGemini(input);
+
+            if (aiData?.intent_type === "create_project" || input.toLowerCase().includes("project")) {
+                const formData = new FormData();
+                formData.append("name", aiData?.title || input); // Fallback to input if title is somehow missing but intent was right
+                formData.append("description", aiData?.description || "");
+                if (aiData?.project_key) formData.append("key", aiData.project_key);
+
+                const result = await createProject(formData);
+
+                if (result.error) {
+                    toast.error(result.error);
+                } else if (result.success && result.projectId) {
+                    toast.success(`Project "${formData.get("name")}" created!`);
+                    router.push(`/dashboard/projects/${result.projectId}`);
+                }
+            } else if (aiData?.intent_type === "create_task") {
+                toast.info("Task creation is supported in the Project view. Creating a generic project instead.");
+                // Fallback to project creation if user asks for task here
+                const formData = new FormData();
+                formData.append("name", aiData?.title || input);
+                formData.append("description", aiData?.description || "");
+                const result = await createProject(formData);
+                if (result.success && result.projectId) {
+                    router.push(`/dashboard/projects/${result.projectId}`);
+                }
+            } else {
+                if (!aiData) {
+                    toast.error("AI could not understand your request. Please try again.");
+                } else {
+                    toast.info("I'm trained to help you build projects. Try 'Create a marketing project'");
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Something went wrong");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleIntent();
+        }
+    };
     const templates = [
         {
             category: "Marketing",
@@ -60,6 +122,10 @@ export default function AIProjectCreator() {
                         {/* Chat Box */}
                         <div className="relative w-full bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col min-h-[160px] transition-all duration-300">
                             <Textarea
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                disabled={isProcessing}
                                 placeholder="Describe your project, roadmap, or campaign..."
                                 className="w-full bg-transparent border-none focus-visible:ring-0 resize-none text-xl min-h-[100px] max-h-[220px] shadow-none p-0 text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 font-medium"
                                 autoFocus
@@ -71,10 +137,16 @@ export default function AIProjectCreator() {
                                     <span>AI Agent active</span>
                                 </div>
                                 <Button
-                                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-105 active:scale-95"
+                                    onClick={handleIntent}
+                                    disabled={!input.trim() || isProcessing}
+                                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                     size="icon"
                                 >
-                                    <ArrowUp size={20} strokeWidth={2.5} />
+                                    {isProcessing ? (
+                                        <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <ArrowUp size={20} strokeWidth={2.5} />
+                                    )}
                                 </Button>
                             </div>
                         </div>

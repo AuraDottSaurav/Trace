@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { createProject } from "@/actions/project";
+import { parseIntentWithGemini } from "@/actions/ai";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -128,19 +129,52 @@ export default function TraceDashboard() {
         setTasks(prev => [tempTask, ...prev]);
         setInput("");
 
-        // Simulate AI parsing for now (using mocked logic to ensure it works without API keys configured nicely)
-        // In real app, call OpenAI here.
-        const { error } = await supabase.from("tasks").insert({
-            title: tempTask.title,
-            status: "To Do",
-            priority: "Medium",
-            project_id: activeProjectId
-        });
+        try {
+            // Call Gemini AI to parse intent
+            const aiData = await parseIntentWithGemini(tempTask.title);
 
-        if (error) {
-            console.error(error);
-            setTasks(prev => prev.filter(t => t.id !== tempId));
-            alert("Failed to create task");
+            if (!aiData) {
+                // Fallback if AI fails: just use the input as title
+                const { error } = await supabase.from("tasks").insert({
+                    title: tempTask.title,
+                    status: "To Do",
+                    priority: "Medium",
+                    project_id: activeProjectId
+                });
+
+                if (error) {
+                    console.error(error);
+                    setTasks(prev => prev.filter(t => t.id !== tempId));
+                    alert("Failed to create task");
+                }
+            } else {
+                const { error } = await supabase.from("tasks").insert({
+                    title: aiData.title || tempTask.title,
+                    status: "To Do",
+                    priority: aiData.priority || "Medium",
+                    description: aiData.description || null,
+                    project_id: activeProjectId,
+                });
+
+                if (error) {
+                    console.error("Supabase Error:", error);
+                    setTasks(prev => prev.filter(t => t.id !== tempId));
+                    alert("Failed to create task");
+                }
+            }
+        } catch (err) {
+            console.error("AI Processing Error:", err);
+            // Fallback on error
+            const { error } = await supabase.from("tasks").insert({
+                title: tempTask.title,
+                status: "To Do",
+                priority: "Medium",
+                project_id: activeProjectId
+            });
+            if (error) {
+                setTasks(prev => prev.filter(t => t.id !== tempId));
+                alert("Failed to create task");
+            }
         }
 
         setIsProcessing(false);
