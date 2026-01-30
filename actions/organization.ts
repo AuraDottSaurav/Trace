@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { currentUser } from "@clerk/nextjs/server";
 
 export async function createOrganization(formData: FormData) {
     const supabase = await createClient();
@@ -11,8 +12,13 @@ export async function createOrganization(formData: FormData) {
 
     if (!name) return { error: "Organization name is required" };
 
-    const { data: { user } } = await supabase.auth.getUser();
+    console.log("[createOrganization] Starting...");
+    const user = await currentUser();
+    console.log("[createOrganization] User found:", user?.id);
     if (!user) return redirect("/login");
+
+    // Clerk uses "primaryEmailAddress" object
+    const userEmail = user.emailAddresses[0]?.emailAddress;
 
     // Generate slug from name (simple version)
     const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -25,7 +31,7 @@ export async function createOrganization(formData: FormData) {
         .from("profiles")
         .upsert({
             id: user.id,
-            email: user.email,
+            email: userEmail,
         }, { onConflict: 'id' });
 
     if (profileError) {
@@ -48,7 +54,6 @@ export async function createOrganization(formData: FormData) {
         console.error("Org Create Error:", orgError);
         return { error: `Failed to create organization: ${orgError.message}` };
     }
-
     // 2. Add Owner as Admin Member
     const { error: memberError } = await supabaseAdmin
         .from("organization_members")
@@ -62,7 +67,7 @@ export async function createOrganization(formData: FormData) {
         console.error("Member Add Error:", memberError);
         return { error: "Created organization but failed to join it." };
     }
-
+    console.log("[createOrganization] Success, redirecting to dashboard");
     return redirect("/dashboard");
 }
 
@@ -107,7 +112,7 @@ export async function getOrganizationMembers(organizationId: string) {
 
 export async function updateMemberRole(memberId: string, newRole: "admin" | "member") {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return { error: "Unauthorized" };
 
     // verify requester is admin
@@ -134,7 +139,7 @@ export async function updateMemberRole(memberId: string, newRole: "admin" | "mem
 
 export async function removeMember(memberId: string) {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return { error: "Unauthorized" };
 
     // verify requester is admin

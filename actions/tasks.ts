@@ -2,9 +2,11 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { currentUser } from "@clerk/nextjs/server";
 
 export async function createTask(projectId: string, formData: FormData) {
     const supabase = await createClient();
+    const user = await currentUser();
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const columnId = formData.get("columnId") as string;
@@ -17,8 +19,8 @@ export async function createTask(projectId: string, formData: FormData) {
 
     if (!title) return { error: "Task title is required" };
     if (!columnId) return { error: "Column ID is required" };
+    if (!projectId) return { error: "Project ID is required" };
 
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "Unauthorized" };
 
     const { data, error } = await supabase
@@ -50,6 +52,9 @@ export async function createTask(projectId: string, formData: FormData) {
 
 export async function updateTaskColumn(taskId: string, columnId: string) {
     const supabase = await createClient();
+    const user = await currentUser();
+
+    if (!user) return { error: "Unauthorized" };
 
     const { error } = await supabase
         .from("tasks")

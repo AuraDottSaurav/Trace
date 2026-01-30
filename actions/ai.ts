@@ -26,27 +26,31 @@ export async function parseIntentWithGemini(input: string, context?: any) {
 
     try {
         const prompt = `
-      You are an AI assistant for a project management tool. 
-      Your goal is to extract structured data from a user's natural language input.
-      
-      User Input: "${input}"
-      
-      Instructions:
-      1. Analyze the input to determine if the user wants to create a PROJECT or a TASK.
-      2. If "project" is mentioned or implied (e.g. "marketing campaign", "new product"), intent_type is "create_project".
-      3. If "task", "bug", "issue" is mentioned, intent_type is "create_task".
-      4. Suggest a short, uppercase 3-4 letter project_key (e.g. "MKT") if creating a project.
-      
-      Return ONLY a raw JSON object (no markdown, no backticks) with this structure:
-      {
-        "title": "Concise summary or name (e.g. 'Hirely' for project, 'Fix Login' for task)",
-        "priority": "Low" | "Medium" | "High",
-        "task_type": "story" | "bug" | "task",
-        "description": "Any extra details",
-        "intent_type": "create_task" | "create_project",
-        "project_key": "KEY"
-      }
-    `;
+            You are an AI assistant for a project management tool. 
+            Your goal is to extract structured data from a user's natural language input.
+            
+            User Input: "${input}"
+            
+            Instructions:
+            1. Analyze the input to determine if the user wants to create a PROJECT or a TASK.
+            2. **Smart Extraction**: Extract the *core name* of the entity. 
+               - Remove command verbs like "creating", "create a", "make new". 
+               - **CRITICAL**: If the user uses quotes (e.g., create project "Hirely"), the title MUST be exactly what is inside the quotes ("Hirely").
+               - If no quotes, infer the most logical concise name (e.g., "Build a mobile app" -> Title: "Mobile App").
+            3. If "project" is mentioned or implied, intent_type is "create_project".
+            4. If "task", "bug", "issue" is mentioned, intent_type is "create_task".
+            5. Suggest a short, uppercase 3-4 letter project_key (e.g. "HIRE") if creating a project.
+            
+            Return ONLY a raw JSON object (no markdown, no backticks) with this structure:
+            {
+              "title": "The extracted name (e.g. 'Hirely', 'Marketing Campaign')",
+              "priority": "Low" | "Medium" | "High",
+              "task_type": "story" | "bug" | "task",
+              "description": "Any extra details found in the input",
+              "intent_type": "create_task" | "create_project",
+              "project_key": "KEY"
+            }
+        `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -60,6 +64,7 @@ export async function parseIntentWithGemini(input: string, context?: any) {
 
         // improved cleanup
         const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        console.log("Cleaned Text for Parsing:", cleanText);
 
         try {
             const parsedData = JSON.parse(cleanText);

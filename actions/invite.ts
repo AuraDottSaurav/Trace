@@ -2,6 +2,8 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { currentUser } from "@clerk/nextjs/server";
 import { Resend } from 'resend';
 
 export async function inviteMember(formData: FormData) {
@@ -11,14 +13,16 @@ export async function inviteMember(formData: FormData) {
 
     if (!email) return { error: "Email is required" };
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return redirect("/login");
+    const user = await currentUser();
+
+    if (!user) return { error: "Unauthorized" };
 
     // Get User's Org
     const { data: membership } = await supabase
         .from("organization_members")
         .select("organization_id, organizations(name)")
         .eq("user_id", user.id)
+        .limit(1)
         .single();
 
     if (!membership) return { error: "You are not in an organization" };
@@ -51,22 +55,20 @@ export async function inviteMember(formData: FormData) {
 
         try {
             const { error: emailError } = await resend.emails.send({
-                from: 'Trace <onboarding@resend.dev>', // Should be configured domain in prod
-                to: [email],
-                subject: `Join ${orgName} on Trace`,
+                from: 'Trace <onboarding@resend.dev>',
+                to: email, // Validated above
+                subject: `You've been invited to join ${orgName}`,
                 html: `
-                <div style="font-family: sans-serif; padding: 20px;">
-                    <h1>You've been invited to ${orgName}</h1>
-                    <p><strong>${user.email}</strong> has invited you to join their workspace on Trace.</p>
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px; margin-top: 16px;">Accept Invitation</a>
-                    <p style="margin-top: 24px; color: #666; font-size: 12px;">Trace Platform</p>
-                </div>
-            `
+                    <h1>You've been invited!</h1>
+                    <p>${user.firstName || user.emailAddresses[0]?.emailAddress} has invited you to join <strong>${orgName}</strong> on Trace.</p>
+                    <p>Log in to accept the invitation.</p>
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/login">Log In</a>
+                `
             });
 
             if (emailError) {
                 console.error("Resend Error:", emailError);
-                return { success: "Invitation created, but failed to send email (Check API Key)." };
+                return { error: `Invitation created but email failed: ${emailError.message}` };
             }
         } catch (e) {
             console.error("Resend Exception:", e);

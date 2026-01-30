@@ -19,6 +19,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import { createProject } from "@/actions/project";
 import { parseIntentWithGemini } from "@/actions/ai";
+import { useSession, useUser } from "@clerk/nextjs";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -74,7 +75,8 @@ export default function TraceDashboard() {
     const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
     const [isCreatingProject, setIsCreatingProject] = useState(false);
 
-    const supabase = createClient();
+    const { session } = useSession();
+    const { user } = useUser();
 
     useEffect(() => {
         fetchProjects();
@@ -87,8 +89,9 @@ export default function TraceDashboard() {
     }, [activeProjectId]);
 
     const fetchProjects = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user || !session) return;
+        const token = await session.getToken({ template: 'supabase' });
+        const supabase = createClient(token);
 
         // Get org via member
         const { data: member } = await supabase.from("organization_members").select("organization_id").eq("user_id", user.id).single();
@@ -102,6 +105,8 @@ export default function TraceDashboard() {
     };
 
     const fetchTasks = async (projectId: string) => {
+        const token = await session?.getToken({ template: 'supabase' });
+        const supabase = createClient(token);
         const { data } = await supabase.from("tasks").select("*").eq("project_id", projectId).order("created_at", { ascending: false });
         if (data) setTasks(data as Task[]);
     };
@@ -135,8 +140,18 @@ export default function TraceDashboard() {
 
             if (!aiData) {
                 // Fallback if AI fails: just use the input as title
+                let finalTitle = tempTask.title;
+                // Try to extract from quotes if present
+                if (tempTask.title.includes('"')) {
+                    const match = tempTask.title.match(/"([^"]+)"/);
+                    if (match) finalTitle = match[1];
+                }
+
+                const token = await session?.getToken({ template: 'supabase' });
+                const supabase = createClient(token);
+
                 const { error } = await supabase.from("tasks").insert({
-                    title: tempTask.title,
+                    title: finalTitle,
                     status: "To Do",
                     priority: "Medium",
                     project_id: activeProjectId
@@ -148,8 +163,11 @@ export default function TraceDashboard() {
                     alert("Failed to create task");
                 }
             } else {
+                const token = await session?.getToken({ template: 'supabase' });
+                const supabase = createClient(token);
+
                 const { error } = await supabase.from("tasks").insert({
-                    title: aiData.title || tempTask.title,
+                    title: aiData.title || (tempTask.title.includes('"') ? tempTask.title.match(/"([^"]+)"/)?.[1] : tempTask.title) || tempTask.title,
                     status: "To Do",
                     priority: aiData.priority || "Medium",
                     description: aiData.description || null,
@@ -165,6 +183,9 @@ export default function TraceDashboard() {
         } catch (err) {
             console.error("AI Processing Error:", err);
             // Fallback on error
+            const token = await session?.getToken({ template: 'supabase' });
+            const supabase = createClient(token);
+
             const { error } = await supabase.from("tasks").insert({
                 title: tempTask.title,
                 status: "To Do",

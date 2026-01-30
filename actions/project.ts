@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { currentUser } from "@clerk/nextjs/server";
 
 export async function createProject(formData: FormData) {
     const supabase = await createClient();
@@ -11,7 +12,7 @@ export async function createProject(formData: FormData) {
 
     if (!name) return { error: "Project name is required" };
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return { error: "Unauthorized" };
 
     // Get User's Org (Auto-detect)
@@ -19,6 +20,8 @@ export async function createProject(formData: FormData) {
         .from("organization_members")
         .select("organization_id")
         .eq("user_id", user.id)
+        .eq("user_id", user.id)
+        .limit(1)
         .single();
 
     if (!membership) return { error: "No organization found" };
@@ -63,13 +66,14 @@ export async function createProject(formData: FormData) {
 
 export async function getProjects() {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return [];
 
     const { data: membership } = await supabase
         .from("organization_members")
         .select("organization_id")
         .eq("user_id", user.id)
+        .limit(1)
         .single();
 
     if (!membership) return [];

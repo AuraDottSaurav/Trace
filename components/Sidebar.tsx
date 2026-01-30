@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 
-import { createClient } from "@/utils/supabase/client";
+import { useClerk } from "@clerk/nextjs";
 
 import { useTheme } from "next-themes";
 
@@ -31,7 +31,11 @@ interface SidebarProps {
     user: {
         id?: string;
         email?: string;
+        firstName?: string | null;
+        lastName?: string | null;
         created_at?: string;
+        createdAt?: number | string; // Clerk property
+        emailAddresses?: { emailAddress: string }[]; // Clerk property
         user_metadata?: {
             full_name?: string;
             name?: string;
@@ -50,10 +54,11 @@ const Sidebar = ({ user, organization, collapsed, setCollapsed }: SidebarProps) 
     const pathname = usePathname();
 
     // Helper to get display name
-    const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0];
+    const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}` : null) || user?.email || user?.emailAddresses?.[0]?.emailAddress?.split('@')[0];
 
     // Format join date
-    const joinDate = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown';
+    const dateValue = user?.createdAt || user?.created_at;
+    const joinDate = dateValue ? new Date(dateValue).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown';
 
     useEffect(() => {
         setMounted(true);
@@ -75,10 +80,10 @@ const Sidebar = ({ user, organization, collapsed, setCollapsed }: SidebarProps) 
         setTheme(theme === "dark" ? "light" : "dark");
     };
 
+    const { signOut } = useClerk();
+
     const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        window.location.href = "/login";
+        await signOut({ redirectUrl: "/login" });
     };
 
     const navItems = [

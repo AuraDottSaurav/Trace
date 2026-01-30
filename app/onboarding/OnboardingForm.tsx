@@ -3,20 +3,14 @@
 import { createClient } from "@/utils/supabase/client";
 import { createOrganization } from "../../actions/organization";
 import { Building2, ArrowRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 export default function OnboardingForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [userEmail, setUserEmail] = useState<string | null>(null);
-
-    useEffect(() => {
-        const getUser = async () => {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-            setUserEmail(user?.email || null);
-        };
-        getUser();
-    }, []);
+    const { user } = useUser();
+    const { signOut } = useClerk();
+    const userEmail = user?.primaryEmailAddress?.emailAddress;
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
@@ -71,9 +65,7 @@ export default function OnboardingForm() {
 
                         <button
                             onClick={async () => {
-                                const supabase = createClient();
-                                await supabase.auth.signOut();
-                                window.location.href = "/login";
+                                await signOut({ redirectUrl: "/login" });
                             }}
                             className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-xs transition-colors"
                         >

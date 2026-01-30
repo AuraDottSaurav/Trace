@@ -1,16 +1,24 @@
+
 import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
 
 import ProjectList from "./ProjectList";
 
 export default async function ProjectsPage() {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
+
+    if (!user) {
+        redirect("/login");
+    }
 
     // Get Organization ID
     const { data: membership } = await supabase
         .from("organization_members")
         .select("organization_id")
         .eq("user_id", user?.id)
+        .limit(1)
         .single();
 
     // Fetch Projects

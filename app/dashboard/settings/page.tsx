@@ -1,9 +1,16 @@
 import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+
+import { currentUser } from "@clerk/nextjs/server";
 import { User, Building, Monitor } from "lucide-react";
 
 export default async function SettingsPage() {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
+
+    if (!user) {
+        redirect("/login");
+    }
 
     // Fetch Profile
     const { data: profile } = await supabase
@@ -17,6 +24,7 @@ export default async function SettingsPage() {
         .from("organization_members")
         .select("*, organizations(*)")
         .eq("user_id", user?.id)
+        .limit(1)
         .single();
 
     const org = membership?.organizations;
@@ -51,7 +59,7 @@ export default async function SettingsPage() {
                             <label className="block text-sm font-medium text-slate-500 mb-1">Email Address</label>
                             <input
                                 disabled
-                                value={user?.email || ""}
+                                value={user?.emailAddresses[0]?.emailAddress || ""}
                                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-600 dark:text-slate-300 outline-none cursor-not-allowed"
                             />
                         </div>

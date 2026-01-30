@@ -26,7 +26,14 @@ export default function AIProjectCreator() {
 
             if (aiData?.intent_type === "create_project" || input.toLowerCase().includes("project")) {
                 const formData = new FormData();
-                formData.append("name", aiData?.title || input); // Fallback to input if title is somehow missing but intent was right
+                let finalName = aiData?.title || input;
+                // Fallback: Smart regex if AI failed but we caught the intent via keyword
+                if (!aiData?.title && input.includes('"')) {
+                    const match = input.match(/"([^"]+)"/);
+                    if (match) finalName = match[1];
+                }
+
+                formData.append("name", finalName);
                 formData.append("description", aiData?.description || "");
                 if (aiData?.project_key) formData.append("key", aiData.project_key);
 
