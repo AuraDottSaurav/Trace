@@ -3,9 +3,10 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 const isPublicRoute = createRouteMatcher(['/login(.*)', '/auth(.*)', '/api/webhooks(.*)'])
 
 export default clerkMiddleware(async (auth, request) => {
-    if (!isPublicRoute(request)) {
-        await auth.protect()
-    }
+    // Temporarily disabled to debug 500 error
+    // if (!isPublicRoute(request)) {
+    //     await auth.protect()
+    // }
 })
 
 export const config = {
