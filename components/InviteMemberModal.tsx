@@ -39,7 +39,7 @@ export default function InviteMemberModal({ isOpen, onClose }: { isOpen: boolean
                             Invitation sent!
                         </h3>
                         <p className="text-slate-500 mb-6">
-                            We've sent an email to <span className="font-medium text-slate-700 dark:text-slate-300">{successEmail}</span> with instructions to join your team.
+                            We&apos;ve sent an email to <span className="font-medium text-slate-700 dark:text-slate-300">{successEmail}</span> with instructions to join your team.
                         </p>
                         <button
                             onClick={handleClose}

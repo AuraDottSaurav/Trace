@@ -59,7 +59,7 @@ function SortableTaskRow({ task, onClick, members, columns }: { task: Task; onCl
         transition,
         opacity: isDragging ? 0.3 : 1,
         zIndex: isDragging ? 50 : "auto",
-        position: 'relative' as 'relative', // Ensure dropdowns position effectively
+        position: 'relative' as const, // Ensure dropdowns position effectively
     };
 
     return (
